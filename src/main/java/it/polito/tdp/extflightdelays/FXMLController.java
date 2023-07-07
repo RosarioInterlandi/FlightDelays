@@ -1,8 +1,10 @@
 package it.polito.tdp.extflightdelays;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.extflightdelays.model.Airport;
 import it.polito.tdp.extflightdelays.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -28,10 +30,10 @@ public class FXMLController {
     private TextField compagnieMinimo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoPartenza"
-    private ComboBox<?> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoPartenza; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbBoxAeroportoDestinazione"
-    private ComboBox<?> cmbBoxAeroportoDestinazione; // Value injected by FXMLLoader
+    private ComboBox<Airport> cmbBoxAeroportoDestinazione; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnAnalizza"
     private Button btnAnalizza; // Value injected by FXMLLoader
@@ -41,12 +43,39 @@ public class FXMLController {
 
     @FXML
     void doAnalizzaAeroporti(ActionEvent event) {
+    	int n =0;
+    	try {
+    		 n = Integer.parseInt(this.compagnieMinimo.getText());
+    	}catch (NumberFormatException ne) {
+    		this.txtResult.setText("Inserire un numero");
+    	}
+    	this.model.buildGraph(n);
+    	// Avendo creato il grafo, possiamo popolare le tendine
+    	// ATTENZIONE a rimuovere quello che gia' e' presente nella tendina
+    	// perché se ricreiamo il grafo e aggiungiamo solo i nuovi vertici
+    	// alla tendina, i vecchi vertici potrebbero restare presenti!
+    	cmbBoxAeroportoPartenza.getItems().clear();
+    	cmbBoxAeroportoPartenza.getItems().addAll(this.model.getVertici());
+    	cmbBoxAeroportoDestinazione.getItems().clear();
+    	cmbBoxAeroportoDestinazione.getItems().addAll(this.model.getVertici());
 
     }
 
     @FXML
     void doTestConnessione(ActionEvent event) {
-
+    	txtResult.clear();
+    	Airport origine = cmbBoxAeroportoPartenza.getValue();
+    	Airport destinazione = cmbBoxAeroportoDestinazione.getValue();
+    	if(origine == null || destinazione == null) {
+    		txtResult.appendText("Seleziona i due aeroporti!");
+    		return ;
+    	}
+    	List<Airport> percorso = this.model.trovaPercorso(origine, destinazione);
+    	if(percorso == null) {
+    		txtResult.appendText("I due aeroporti non sono collegati");
+    	} else {
+    		txtResult.appendText(percorso.toString());
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
